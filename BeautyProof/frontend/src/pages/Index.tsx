@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
+import { ethers } from "ethers";
 import HeroSection from "@/components/HeroSection";
 import WhySection from "@/components/WhySection";
 import WalletSection from "@/components/WalletSection";
@@ -17,6 +18,13 @@ declare global {
     ethereum?: any;
   }
 }
+
+const CONTRACT_ADDRESS = "0xfF0519eF2d0dA815396Ea375B5BAC7ebE294d842";
+
+const ABI = [
+  "function recordProcedure(string _procedureType, string _productBatch, string _doctorId, string _notes)",
+  "function getProcedure(uint256 _index) view returns (address user, string procedureType, string productBatch, string doctorId, string notes, uint256 timestamp)"
+];
 
 const Index = () => {
   const [account, setAccount] = useState<string | null>(null);
@@ -167,6 +175,12 @@ const Index = () => {
       return false;
     }
 
+    const chainId = await window.ethereum.request({ method: "eth_chainId" });
+    if (chainId !== "0xa869") {
+      alert("Please switch to Avalanche Fuji Testnet.");
+      return false;
+    }
+
     return true;
   }, []);
 
@@ -180,12 +194,31 @@ const Index = () => {
       const ok = await ensureUnlocked();
       if (!ok) return;
 
-      setTxStatus("Submitting transaction...");
+      try {
+        setTxStatus("Waiting for wallet confirmation...");
 
-      // Demo mode
-      setTimeout(() => {
-        setTxStatus("Transaction simulated successfully (demo mode)");
-      }, 1000);
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const signer = await provider.getSigner();
+        const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+
+        const tx = await contract.recordProcedure(
+          data.procedureType,
+          data.productBatch,
+          data.doctorId,
+          data.notes
+        );
+
+        setTxStatus("Transaction submitted. Waiting for confirmation...");
+
+        await tx.wait();
+
+        setTxStatus("Transaction confirmed on Avalanche Fuji ✅");
+      } catch (err: any) {
+        console.error("Submit failed:", err);
+        setTxStatus(
+          `Transaction failed: ${err?.reason || err?.shortMessage || err?.message || "Unknown error"}`
+        );
+      }
     },
     [ensureUnlocked]
   );
@@ -195,19 +228,30 @@ const Index = () => {
       const ok = await ensureUnlocked();
       if (!ok) return;
 
-      const safeIndex = index?.trim() || "0";
-      console.log("QUERY TRIGGERED", safeIndex);
+      try {
+        const safeIndex = index?.trim() || "0";
 
-      setQueryResult({
-        procedureType: "Botox Injection",
-        productBatch: "BTX-2026-0315",
-        doctorId: "CN-PL-8821",
-        notes: "Preventive anti-aging, 20 units",
-        timestamp: new Date().toLocaleString(),
-        patient: account || "",
-      });
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
+
+        const result = await contract.getProcedure(BigInt(safeIndex));
+
+        setQueryResult({
+          patient: result.user,
+          procedureType: result.procedureType,
+          productBatch: result.productBatch,
+          doctorId: result.doctorId,
+          notes: result.notes,
+          timestamp: new Date(Number(result.timestamp) * 1000).toLocaleString(),
+        });
+      } catch (err: any) {
+        console.error("Query failed:", err);
+        alert(
+          `Query failed: ${err?.reason || err?.shortMessage || err?.message || "Unknown error"}`
+        );
+      }
     },
-    [ensureUnlocked, account]
+    [ensureUnlocked]
   );
 
   return (
