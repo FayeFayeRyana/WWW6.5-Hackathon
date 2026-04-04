@@ -36,7 +36,7 @@ export const translations: Record<Locale, Record<string, string>> = {
     "wallet.title": "Wallet",
     "wallet.connect": "Connect MetaMask",
     "wallet.connected": "Connected",
-    "wallet.network": "Sepolia Testnet",
+    "wallet.network": "Avalanche Fuji 测试网",
     "wallet.noWallet": "No wallet connected",
     "form.title": "Submit Record",
     "form.procedureType": "Procedure Type",
