@@ -12,13 +12,26 @@ const WalletSection = ({
 }) => {
   const { t } = useLanguage();
 
+  const getNetworkName = () => {
+    if (!window.ethereum?.chainId) return "Unknown";
+
+    switch (window.ethereum.chainId) {
+      case "0xa869":
+        return "Avalanche Fuji Testnet";
+      case "0xaa36a7":
+        return "Sepolia Testnet";
+      default:
+        return "Wrong Network";
+    }
+  };
+
   return (
     <section className="py-6">
       <motion.div
         initial={{ opacity: 0, y: 20, scale: 0.96 }}
         whileInView={{ opacity: 1, y: 0, scale: 1 }}
         viewport={{ once: true, margin: "-60px" }}
-        transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ duration: 0.55 }}
         className="max-w-md mx-auto"
       >
         <div className="bg-card rounded-xl border border-border/60 p-6 text-center space-y-4 shadow-sm">
@@ -28,7 +41,7 @@ const WalletSection = ({
           </div>
 
           {!account ? (
-            <Button id="connectButton" onClick={onConnect} className="w-full text-sm">
+            <Button onClick={onConnect} className="w-full text-sm">
               {t("wallet.connect")}
             </Button>
           ) : (
@@ -37,18 +50,16 @@ const WalletSection = ({
                 <Wifi className="w-4 h-4" />
                 <span>{t("wallet.connected")}</span>
               </div>
-              <p
-                id="walletAddress"
-                className="text-xs text-muted-foreground font-mono break-all bg-muted/60 rounded-md px-3 py-2"
-              >
+
+              <p className="text-xs text-muted-foreground font-mono break-all bg-muted/60 rounded-md px-3 py-2">
                 {account}
               </p>
             </div>
           )}
 
-          <p id="networkStatus" className="text-xs text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             {account
-              ? t("wallet.network") + ": " + (window.ethereum?.chainId === "0xA869" ? "Avalanche Fuji Testnet" : "Unknown")
+              ? `${t("wallet.network")}: ${getNetworkName()}`
               : t("wallet.noWallet")}
           </p>
         </div>
