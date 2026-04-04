@@ -47,7 +47,9 @@ const WalletSection = ({
           )}
 
           <p id="networkStatus" className="text-xs text-muted-foreground">
-            {account ? t("wallet.network") : t("wallet.noWallet")}
+            {account
+              ? t("wallet.network") + ": " + (window.ethereum?.chainId === "0xA869" ? "Avalanche Fuji Testnet" : "Unknown")
+              : t("wallet.noWallet")}
           </p>
         </div>
       </motion.div>
