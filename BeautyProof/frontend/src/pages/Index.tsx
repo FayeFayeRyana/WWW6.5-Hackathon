@@ -30,13 +30,24 @@ const Index = () => {
       alert("Please install MetaMask.");
       return;
     }
+
     try {
       const accounts = await window.ethereum.request({
         method: "eth_requestAccounts",
       });
+
+      // ✅ 核心：防止假连接
+      if (!accounts || accounts.length === 0 || !window.ethereum.selectedAddress) {
+        alert("Please unlock MetaMask first.");
+        setAccount(null);
+        return;
+      }
+
       setAccount(accounts[0]);
+
     } catch (err) {
       console.error("Wallet connection failed", err);
+      setAccount(null);
     }
   }, []);
 
@@ -47,34 +58,43 @@ const Index = () => {
       doctorId: string;
       notes: string;
     }) => {
-      if (!account) {
-        alert("Connect wallet first.");
+      // ✅ 防止钱包未解锁
+      if (!window.ethereum?.selectedAddress) {
+        alert("Please unlock MetaMask first.");
         return;
       }
+
       setTxStatus("Submitting transaction…");
+
+      // 👉 Demo用模拟逻辑（不会真的发交易）
       setTimeout(() => {
-        setTxStatus("Transaction submitted. Awaiting confirmation…");
-      }, 1500);
+        setTxStatus("Transaction simulated (demo mode)");
+      }, 1000);
     },
-    [account]
+    []
   );
 
   const queryRecord = useCallback(
     async (index: string) => {
-      if (!account) {
-        alert("Connect wallet first.");
+      // ✅ 防止钱包未解锁
+      if (!window.ethereum?.selectedAddress) {
+        alert("Please unlock MetaMask first.");
         return;
       }
+
+      console.log("QUERY TRIGGERED", index);
+
+      // 👉 Demo用模拟数据
       setQueryResult({
         procedureType: "Botox",
-        productBatch: "BTX-2024-0042",
-        doctorId: "DR-8812",
-        notes: "Upper forehead, 20 units",
+        productBatch: "BTX-2026-0315",
+        doctorId: "CN-PL-8821",
+        notes: "Preventive anti-aging, 20 units",
         timestamp: new Date().toLocaleString(),
-        patient: account,
+        patient: window.ethereum.selectedAddress,
       });
     },
-    [account]
+    []
   );
 
   return (
