@@ -6,24 +6,13 @@ import { useLanguage } from "@/i18n/LanguageContext";
 const WalletSection = ({
   account,
   onConnect,
+  networkName,
 }: {
   account: string | null;
   onConnect: () => void;
+  networkName: string;
 }) => {
   const { t } = useLanguage();
-
-  const getNetworkName = () => {
-    if (!window.ethereum?.chainId) return "Unknown";
-
-    switch (window.ethereum.chainId) {
-      case "0xa869":
-        return "Avalanche Fuji Testnet";
-      case "0xaa36a7":
-        return "Sepolia Testnet";
-      default:
-        return "Wrong Network";
-    }
-  };
 
   return (
     <section className="py-6">
@@ -31,17 +20,19 @@ const WalletSection = ({
         initial={{ opacity: 0, y: 20, scale: 0.96 }}
         whileInView={{ opacity: 1, y: 0, scale: 1 }}
         viewport={{ once: true, margin: "-60px" }}
-        transition={{ duration: 0.55 }}
+        transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
         className="max-w-md mx-auto"
       >
         <div className="bg-card rounded-xl border border-border/60 p-6 text-center space-y-4 shadow-sm">
           <div className="flex items-center justify-center gap-2 text-foreground">
             <Wallet className="w-[1.125rem] h-[1.125rem]" />
-            <h2 className="text-lg font-display tracking-tight">{t("wallet.title")}</h2>
+            <h2 className="text-lg font-display tracking-tight">
+              {t("wallet.title")}
+            </h2>
           </div>
 
           {!account ? (
-            <Button onClick={onConnect} className="w-full text-sm">
+            <Button id="connectButton" onClick={onConnect} className="w-full text-sm">
               {t("wallet.connect")}
             </Button>
           ) : (
@@ -51,16 +42,17 @@ const WalletSection = ({
                 <span>{t("wallet.connected")}</span>
               </div>
 
-              <p className="text-xs text-muted-foreground font-mono break-all bg-muted/60 rounded-md px-3 py-2">
+              <p
+                id="walletAddress"
+                className="text-xs text-muted-foreground font-mono break-all bg-muted/60 rounded-md px-3 py-2"
+              >
                 {account}
               </p>
             </div>
           )}
 
-          <p className="text-xs text-muted-foreground">
-            {account
-              ? `${t("wallet.network")}: ${getNetworkName()}`
-              : t("wallet.noWallet")}
+          <p id="networkStatus" className="text-xs text-muted-foreground">
+            {account ? networkName : t("wallet.noWallet")}
           </p>
         </div>
       </motion.div>
